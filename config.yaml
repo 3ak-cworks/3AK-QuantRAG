@@ -20,6 +20,7 @@ llm:
     gcp: "YOUR_GCP_KEY"
     anthropic: "YOUR_ANTHROPIC_KEY"
     groq: "YOUR_GROQ_KEY"
+    nvidia: "YOUR_NVIDIA_KEY"
   models:
     ollama:
       router: "qwen2.5:7b"
@@ -37,3 +38,7 @@ llm:
       router: "openai/gpt-oss-20b"
       sql: "openai/gpt-oss-120b"
       synthesizer: "openai/gpt-oss-20b"
+    nim:
+      router: "meta/llama-3.2-11b-vision-instruct"
+      sql: "meta/llama-3.2-90b-vision-instruct"
+      synthesizer: "meta/llama-3.2-11b-vision-instruct"

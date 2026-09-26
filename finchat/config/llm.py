@@ -261,6 +261,63 @@ class GroqClient:
         except Exception as e:
             return f"Groq API Error: {e}"
 
+
+class NimClient:
+    """
+    Lightning-fast Cloud Inference using NVIDIA NIM APIs.
+    """
+    def __init__(self, model_name: str = "meta/llama-3.2-11b-vision-instruct"):
+        self.model_name = model_name
+        settings = load_settings()
+        self.api_key = os.environ.get("NVIDIA_API_KEY") or settings.get("NVIDIA_API_KEY")
+        if not self.api_key:
+            print("WARNING: NVIDIA_API_KEY not found in env or finchat/config/settings.yaml!")
+
+    def generate_sql(self, prompt: str, user_question: str) -> str:
+        system_prompt = (
+            "You are an elite SQL expert for DuckDB. Based on the provided semantic catalog schema, "
+            "generate ONLY the valid DuckDB SQL query to answer the user's question. "
+            "Wrap your SQL in ```sql ... ``` code blocks. Do not add any explanation."
+        )
+        return self.generate_completion(f"{prompt}\n\nUser Question: {user_question}", system_prompt, 0.0)
+
+    def generate_completion(self, prompt: str, system_prompt: str = "You are an expert AI assistant.", temperature: float = 0.0) -> str:
+        if not self.api_key:
+            return "Error: NVIDIA_API_KEY is not set in finchat/config/settings.yaml."
+            
+        url = "https://integrate.api.nvidia.com/v1/chat/completions"
+        
+        payload = {
+            "model": self.model_name,
+            "temperature": temperature,
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.api_key}',
+                    'Accept': 'application/json'
+                }
+            )
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                if "choices" in result and len(result["choices"]) > 0:
+                    return result["choices"][0]["message"]["content"].strip()
+                return ""
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            return f"NVIDIA NIM API Error: {e.code} - {error_body}"
+        except Exception as e:
+            return f"NVIDIA NIM API Error: {e}"
+
 def get_llm_client(role: str, provider: str = "ollama"):
     """
     Factory to seamlessly switch between Local Ollama, Cloud Gemini, Anthropic Claude, and Groq dynamically per request.
@@ -279,7 +336,8 @@ def get_llm_client(role: str, provider: str = "ollama"):
         "ollama": {"router": "qwen2.5:7b", "sql": "qwen2.5-coder:7b", "synthesizer": "qwen2.5:7b"},
         "gemini": {"router": "gemini-3.8-flash", "sql": "gemini-3.8-flash", "synthesizer": "gemini-3.8-flash"},
         "claude": {"router": "claude-3-5-haiku-20241022", "sql": "claude-3-5-sonnet-20241022", "synthesizer": "claude-3-5-haiku-20241022"},
-        "groq": {"router": "openai/gpt-oss-20b", "sql": "openai/gpt-oss-120b", "synthesizer": "openai/gpt-oss-20b"}
+                "groq": {"router": "openai/gpt-oss-20b", "sql": "openai/gpt-oss-120b", "synthesizer": "openai/gpt-oss-20b"},
+        "nim": {"router": "meta/llama-3.2-11b-vision-instruct", "sql": "meta/llama-3.2-90b-vision-instruct", "synthesizer": "meta/llama-3.2-11b-vision-instruct"}
     }
     
     provider_models = models_config.get(provider, default_models.get(provider, default_models["ollama"]))
@@ -295,6 +353,8 @@ def get_llm_client(role: str, provider: str = "ollama"):
         return ClaudeClient(model_name=model_name)
     elif provider == "groq":
         return GroqClient(model_name=model_name)
+    elif provider == "nim":
+        return NimClient(model_name=model_name)
     else:
         return OllamaClient(model_name=model_name)
 
