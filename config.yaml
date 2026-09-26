@@ -26,9 +26,9 @@ llm:
       sql: "qwen2.5-coder:7b"
       synthesizer: "qwen2.5:7b"
     gemini:
-      router: "gemini-3.5-flash"
-      sql: "gemini-3.1-pro-preview"
-      synthesizer: "gemini-3.5-flash"
+      router: "gemini-2.5-flash"
+      sql: "gemini-2.5-flash"
+      synthesizer: "gemini-2.5-flash"
     claude:
       router: "claude-3-5-haiku-20241022"
       sql: "claude-3-5-sonnet-20241022"

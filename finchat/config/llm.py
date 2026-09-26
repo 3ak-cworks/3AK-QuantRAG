@@ -101,7 +101,7 @@ class GeminiClient:
     """
     Lightning-fast Cloud Inference using Google Gemini.
     """
-    def __init__(self, model_name: str = "gemini-3.5-flash"):
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
         self.model_name = model_name
         settings = load_settings()
         self.api_key = os.environ.get("GEMINI_API_KEY") or settings.get("GEMINI_API_KEY")
@@ -277,7 +277,7 @@ def get_llm_client(role: str, provider: str = "ollama"):
     # Default hardcoded fallback mappings if config.yaml is missing them
     default_models = {
         "ollama": {"router": "qwen2.5:7b", "sql": "qwen2.5-coder:7b", "synthesizer": "qwen2.5:7b"},
-        "gemini": {"router": "gemini-3.5-flash", "sql": "gemini-3.1-pro-preview", "synthesizer": "gemini-3.5-flash"},
+        "gemini": {"router": "gemini-2.5-flash", "sql": "gemini-2.5-flash", "synthesizer": "gemini-2.5-flash"},
         "claude": {"router": "claude-3-5-haiku-20241022", "sql": "claude-3-5-sonnet-20241022", "synthesizer": "claude-3-5-haiku-20241022"},
         "groq": {"router": "openai/gpt-oss-20b", "sql": "openai/gpt-oss-120b", "synthesizer": "openai/gpt-oss-20b"}
     }
