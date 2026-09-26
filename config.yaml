@@ -15,8 +15,25 @@ api:
   live_api_url: "http://localhost:5000/api"
 
 llm:
-  provider: "local" # options: local, cloud
+  provider: "ollama" # options: ollama, gemini, claude, groq
   keys:
     gcp: "YOUR_GCP_KEY"
     anthropic: "YOUR_ANTHROPIC_KEY"
     groq: "YOUR_GROQ_KEY"
+  models:
+    ollama:
+      router: "qwen2.5:7b"
+      sql: "qwen2.5-coder:7b"
+      synthesizer: "qwen2.5:7b"
+    gemini:
+      router: "gemini-3.5-flash"
+      sql: "gemini-3.1-pro-preview"
+      synthesizer: "gemini-3.5-flash"
+    claude:
+      router: "claude-3-5-haiku-20241022"
+      sql: "claude-3-5-sonnet-20241022"
+      synthesizer: "claude-3-5-haiku-20241022"
+    groq:
+      router: "openai/gpt-oss-20b"
+      sql: "openai/gpt-oss-120b"
+      synthesizer: "openai/gpt-oss-20b"

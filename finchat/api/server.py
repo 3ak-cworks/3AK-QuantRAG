@@ -59,7 +59,17 @@ def search_docs():
 def ask_copilot():
     data = request.get_json() or {}
     query = data.get("query")
-    provider = data.get("provider", "ollama")
+    
+    # Load default provider from config.yaml
+    default_provider = "ollama"
+    try:
+        from finchat.config.llm import load_settings
+        settings = load_settings()
+        default_provider = settings.get("llm", {}).get("provider", "ollama")
+    except Exception:
+        pass
+        
+    provider = data.get("provider", default_provider)
     
     if not query:
         return jsonify({"error": "Missing 'query' parameter"}), 400

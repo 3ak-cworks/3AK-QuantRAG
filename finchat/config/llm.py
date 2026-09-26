@@ -84,6 +84,13 @@ import yaml
 import os
 
 def load_settings():
+    # Try root config.yaml first
+    root_config = "config.yaml"
+    if os.path.exists(root_config):
+        with open(root_config, 'r') as f:
+            return yaml.safe_load(f) or {}
+    
+    # Fallback to finchat/config/settings.yaml
     config_path = "finchat/config/settings.yaml"
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
@@ -261,28 +268,35 @@ def get_llm_client(role: str, provider: str = "ollama"):
     provider: 'ollama', 'gemini', 'claude', 'groq'
     """
     provider = provider.lower()
+    settings = load_settings()
+    
+    # Extract models from config.yaml if available, else use defaults
+    llm_config = settings.get("llm", {})
+    models_config = llm_config.get("models", {})
+    
+    # Default hardcoded fallback mappings if config.yaml is missing them
+    default_models = {
+        "ollama": {"router": "qwen2.5:7b", "sql": "qwen2.5-coder:7b", "synthesizer": "qwen2.5:7b"},
+        "gemini": {"router": "gemini-3.5-flash", "sql": "gemini-3.1-pro-preview", "synthesizer": "gemini-3.5-flash"},
+        "claude": {"router": "claude-3-5-haiku-20241022", "sql": "claude-3-5-sonnet-20241022", "synthesizer": "claude-3-5-haiku-20241022"},
+        "groq": {"router": "openai/gpt-oss-20b", "sql": "openai/gpt-oss-120b", "synthesizer": "openai/gpt-oss-20b"}
+    }
+    
+    provider_models = models_config.get(provider, default_models.get(provider, default_models["ollama"]))
+    
+    # In config.yaml, synthesis is called "synthesizer" to be clearer, but orchestrator might pass "synthesis"
+    # We will check both keys.
+    role_key = "synthesizer" if role == "synthesis" else role
+    model_name = provider_models.get(role_key, provider_models.get(role, ""))
     
     if provider == "gemini":
-        if role == 'sql':
-            return GeminiClient(model_name="gemini-3.1-pro-preview")
-        else:
-            return GeminiClient(model_name="gemini-3.5-flash")
+        return GeminiClient(model_name=model_name)
     elif provider == "claude":
-        if role == 'sql':
-            return ClaudeClient(model_name="claude-3-5-sonnet-20241022")
-        else:
-            return ClaudeClient(model_name="claude-3-5-haiku-20241022")
+        return ClaudeClient(model_name=model_name)
     elif provider == "groq":
-        if role == 'sql':
-            return GroqClient(model_name="openai/gpt-oss-120b")
-        else:
-            return GroqClient(model_name="openai/gpt-oss-20b")
+        return GroqClient(model_name=model_name)
     else:
-        # Default to local
-        if role == 'sql':
-            return OllamaClient(model_name="qwen3.8:27b") # Heavy weight reasoning for complex DuckDB SQL
-        else:
-            return OllamaClient(model_name="qwen2.5:7b") # Lightweight for fast routing/extraction
+        return OllamaClient(model_name=model_name)
 
 if __name__ == "__main__":
     # Smoke test to ensure Ollama is reachable
