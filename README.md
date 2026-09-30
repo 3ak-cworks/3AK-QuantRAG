@@ -9,6 +9,10 @@
 
 **Disclaimer:** This repository provides the core architectural framework to set up a multi-agent RAG system. However, to make it work effectively for your specific data store, you must tune the models and configure the data and system parameters according to your unique needs to reap the most benefits and make it run like a true chatbot. Every trading context and dataset is different, so out-of-the-box generalization is not possible.
 
+
+> **🚀 NEW TO THE REPOSITORY?** 
+> Please read the [**Startup Guide**](STARTUP_GUIDE.md) first to get your environment configured and start the multi-agent API server.
+
 ---
 
 ## 1. Executive Summary
